@@ -6,12 +6,9 @@ import re
 import uuid
 from collections import defaultdict, Counter
 from datetime import datetime
+from pathlib import Path
 
 st.set_page_config(page_title="Decision Atlas", page_icon="🧭", layout="wide")
-
-# ============================================================
-# THEME
-# ============================================================
 
 THEME = {
     "header_bg": "linear-gradient(90deg, #155e75 0%, #0f766e 55%, #1d4ed8 100%)",
@@ -54,13 +51,11 @@ st.markdown(
         background: {THEME['surface_alt']};
         color: {THEME['text']};
     }}
-
     .block-container {{
         padding-top: 0.7rem;
-        padding-bottom: 1rem;
+        padding-bottom: 1.2rem;
         max-width: 1500px;
     }}
-
     .atlas-header {{
         position: sticky;
         top: 0;
@@ -73,7 +68,6 @@ st.markdown(
         margin-bottom: 1rem;
         overflow: hidden;
     }}
-
     .atlas-header::after {{
         content: "";
         position: absolute;
@@ -84,7 +78,6 @@ st.markdown(
         background: rgba(255,255,255,0.10);
         border-radius: 50%;
     }}
-
     .atlas-header h1 {{
         margin: 0;
         font-size: 3rem;
@@ -93,7 +86,6 @@ st.markdown(
         z-index: 1;
         text-align: center;
     }}
-
     .atlas-header p {{
         margin: 0.55rem 0 0 0;
         opacity: 0.96;
@@ -102,16 +94,6 @@ st.markdown(
         z-index: 1;
         text-align: center;
     }}
-
-    .atlas-card {{
-        background: {THEME['surface']};
-        border: 1px solid {THEME['border']};
-        border-radius: 22px;
-        padding: 1rem 1.15rem;
-        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
-        margin-bottom: 1rem;
-    }}
-
     .atlas-note, .atlas-warning, .atlas-success, .atlas-danger {{
         border-radius: 14px;
         padding: 0.9rem 1rem;
@@ -120,27 +102,10 @@ st.markdown(
         border-left-width: 6px;
         border-left-style: solid;
     }}
-
-    .atlas-note {{
-        border-left-color: {THEME['info_border']};
-        background: {THEME['info_bg']};
-    }}
-
-    .atlas-warning {{
-        border-left-color: {THEME['warning_border']};
-        background: {THEME['warning_bg']};
-    }}
-
-    .atlas-success {{
-        border-left-color: {THEME['success_border']};
-        background: {THEME['success_bg']};
-    }}
-
-    .atlas-danger {{
-        border-left-color: {THEME['danger_border']};
-        background: {THEME['danger_bg']};
-    }}
-
+    .atlas-note {{ border-left-color: {THEME['info_border']}; background: {THEME['info_bg']}; }}
+    .atlas-warning {{ border-left-color: {THEME['warning_border']}; background: {THEME['warning_bg']}; }}
+    .atlas-success {{ border-left-color: {THEME['success_border']}; background: {THEME['success_bg']}; }}
+    .atlas-danger {{ border-left-color: {THEME['danger_border']}; background: {THEME['danger_bg']}; }}
     .atlas-pill {{
         display:inline-block;
         padding:0.28rem 0.8rem;
@@ -150,17 +115,10 @@ st.markdown(
         font-weight:700;
         border:1px solid transparent;
     }}
-
-    .atlas-subtle {{
-        color: {THEME['muted']};
-        font-size: 0.92rem;
-    }}
-
     div[data-baseweb="tab-list"] {{
         gap: 0.5rem;
-        margin-bottom: 0.6rem;
+        margin-bottom: 0.8rem;
     }}
-
     div[data-baseweb="tab-list"] button[role="tab"] {{
         border-radius: 16px !important;
         padding: 0.72rem 1.05rem !important;
@@ -169,21 +127,17 @@ st.markdown(
         color: {THEME['text']} !important;
         font-weight: 700 !important;
     }}
-
     div[data-baseweb="tab-list"] button[aria-selected="true"] {{
         color: #ffffff !important;
         border: 1px solid transparent !important;
         box-shadow: 0 6px 14px rgba(79, 70, 229, 0.18);
     }}
-
     div[data-baseweb="tab-list"] button[aria-selected="true"]:nth-child(1) {{
         background: {THEME['tab_clinical']} !important;
     }}
-
     div[data-baseweb="tab-list"] button[aria-selected="true"]:nth-child(2) {{
         background: {THEME['tab_education']} !important;
     }}
-
     .stButton > button, .stDownloadButton > button, .stFormSubmitButton > button {{
         border-radius: 12px !important;
         font-weight: 700 !important;
@@ -192,59 +146,59 @@ st.markdown(
         background: {THEME['button_primary']} !important;
         box-shadow: 0 6px 14px rgba(31, 111, 178, 0.16);
     }}
-
     .stButton > button:hover, .stDownloadButton > button:hover, .stFormSubmitButton > button:hover {{
         background: {THEME['button_primary_hover']} !important;
     }}
-
     div[data-testid="stSidebar"] .stButton > button,
     div[data-testid="stSidebar"] .stDownloadButton > button,
     div[data-testid="stSidebar"] .stFormSubmitButton > button {{
         background: {THEME['button_secondary']} !important;
         box-shadow: 0 6px 14px rgba(15, 118, 110, 0.16);
     }}
-
     div[data-testid="stSidebar"] .stButton > button:hover,
     div[data-testid="stSidebar"] .stDownloadButton > button:hover,
     div[data-testid="stSidebar"] .stFormSubmitButton > button:hover {{
         background: {THEME['button_secondary_hover']} !important;
     }}
-
     .stTextInput > div > div > input,
     .stTextArea textarea,
     .stSelectbox div[data-baseweb="select"] > div,
-    .stMultiSelect div[data-baseweb="select"] > div {{
+    .stMultiSelect div[data-baseweb="select"] > div,
+    .stNumberInput input {{
         border-radius: 12px !important;
         border: 1px solid {THEME['border']} !important;
         background: #ffffff !important;
     }}
-
-    .atlas-section-bar {{
-        background: linear-gradient(90deg, #23618f, #2f7bb3);
-        color: white;
-        border-radius: 18px 18px 0 0;
-        padding: 1rem 1.2rem;
-        margin: -1rem -1.15rem 1rem -1.15rem;
-        font-size: 1.15rem;
-        font-weight: 800;
-    }}
-
-    .atlas-legend {{
-        background: white;
+    div[data-testid="stExpander"] {{
         border: 1px solid {THEME['border']};
-        border-radius: 18px;
-        padding: 0.95rem 1.1rem;
+        border-radius: 20px;
+        background: {THEME['surface']};
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+        overflow: hidden;
         margin-bottom: 1rem;
-        box-shadow: 0 6px 14px rgba(15, 23, 42, 0.04);
+    }}
+    div[data-testid="stExpander"] details {{
+        border: none;
+    }}
+    div[data-testid="stExpander"] summary {{
+        background: linear-gradient(90deg, #23618f, #2f7bb3);
+        color: white !important;
+        font-weight: 800 !important;
+        padding-top: 0.95rem !important;
+        padding-bottom: 0.95rem !important;
+        border-radius: 0 !important;
+    }}
+    div[data-testid="stExpander"] summary p {{
+        color: white !important;
+        font-weight: 800 !important;
+    }}
+    div[data-testid="stExpander"] summary svg {{
+        fill: white !important;
     }}
     </style>
     """,
     unsafe_allow_html=True,
 )
-
-# ============================================================
-# DATA MODELS
-# ============================================================
 
 @dataclass
 class ReliabilityNote:
@@ -265,7 +219,6 @@ class ProcessEntry:
     cautions: List[str] = field(default_factory=list)
     reliability_notes: List[ReliabilityNote] = field(default_factory=list)
     examples: List[str] = field(default_factory=list)
-    visible_tags: List[str] = field(default_factory=list)
     filter_tags: List[str] = field(default_factory=list)
 
 
@@ -284,14 +237,13 @@ class Observation:
 
 
 OBSERVATION_TYPE_HELP = {
-    "Speech pattern": "Use this when you are recording a recurring phonological pattern or a likely process shown by one or more productions.",
+    "Speech pattern": "Use this when you are recording a recurring phonological pattern or likely process shown by one or more productions.",
     "Contrast impact": "Use this when the key issue is loss or reduction of a phonemic contrast, even if you are not yet naming a process.",
     "Intelligibility": "Use this when the observation is mainly about how understandable the child is to listeners.",
     "Context / task effect": "Use this when performance changes across word position, task type, prompting, repetition, or speech context.",
     "Developmental consideration": "Use this when you want to note age-related interpretation, persistence, or whether a pattern may need cautious developmental judgement.",
     "Other": "Use this for observations that matter clinically but do not fit neatly into the other categories."
 }
-
 
 PROCESS_DB: List[ProcessEntry] = [
     ProcessEntry(
@@ -326,7 +278,6 @@ PROCESS_DB: List[ProcessEntry] = [
             ReliabilityNote("Boundary", "Moderate for developmental interpretation unless contextual factors are explicitly considered."),
         ],
         examples=["key → tea", "car → tar", "go → doe"],
-        visible_tags=["place contrast", "common pattern"],
         filter_tags=["place contrast", "common pattern", "system map", "education"],
     ),
     ProcessEntry(
@@ -359,7 +310,6 @@ PROCESS_DB: List[ProcessEntry] = [
             ReliabilityNote("Boundary", "Moderate for inferring severity without wider sampling."),
         ],
         examples=["dog → do", "bus → bu", "cat → ca"],
-        visible_tags=["word shape", "intelligibility"],
         filter_tags=["word shape", "intelligibility", "system map", "education"],
     ),
     ProcessEntry(
@@ -386,11 +336,8 @@ PROCESS_DB: List[ProcessEntry] = [
             "Avoid treating all cluster reductions as equivalent; retained elements matter.",
             "Avoid making therapy recommendations from the pattern name alone.",
         ],
-        reliability_notes=[
-            ReliabilityNote("Confidence", "High for structural description; moderate for interpretation without deeper context."),
-        ],
+        reliability_notes=[ReliabilityNote("Confidence", "High for structural description; moderate for interpretation without deeper context.")],
         examples=["spoon → poon", "blue → bu", "nest → nes"],
-        visible_tags=["syllable structure", "morphology"],
         filter_tags=["syllable structure", "morphology", "system map", "education"],
     ),
     ProcessEntry(
@@ -419,7 +366,6 @@ PROCESS_DB: List[ProcessEntry] = [
         ],
         reliability_notes=[ReliabilityNote("Confidence", "Moderate to high when based on repeated multisyllabic examples.")],
         examples=["banana → nana", "potato → tato"],
-        visible_tags=["prosody", "word shape"],
         filter_tags=["prosody", "word shape", "system map", "education"],
     ),
     ProcessEntry(
@@ -445,7 +391,6 @@ PROCESS_DB: List[ProcessEntry] = [
         cautions=["Do not assume all stop substitutions belong to one single pattern without checking target class."],
         reliability_notes=[ReliabilityNote("Confidence", "High for contrast-based description; moderate for interpretation without position sampling.")],
         examples=["see → tea", "fish → pit"],
-        visible_tags=["manner contrast"],
         filter_tags=["manner contrast", "system map", "education"],
     ),
     ProcessEntry(
@@ -471,7 +416,6 @@ PROCESS_DB: List[ProcessEntry] = [
         cautions=["Avoid overgeneralising from a small set of familiar words."],
         reliability_notes=[ReliabilityNote("Confidence", "High for description when liquid targets are clearly sampled.")],
         examples=["rabbit → wabbit", "look → yook"],
-        visible_tags=["manner contrast", "liquids"],
         filter_tags=["manner contrast", "liquids", "system map", "education"],
     ),
     ProcessEntry(
@@ -497,7 +441,6 @@ PROCESS_DB: List[ProcessEntry] = [
         cautions=["Check whether broad transcription is hiding finer phonetic detail."],
         reliability_notes=[ReliabilityNote("Confidence", "Moderate to high depending on transcription detail.")],
         examples=["chair → share", "jam → zam"],
-        visible_tags=["manner contrast", "affricates"],
         filter_tags=["manner contrast", "affricates", "system map", "education"],
     ),
     ProcessEntry(
@@ -523,7 +466,6 @@ PROCESS_DB: List[ProcessEntry] = [
         cautions=["Avoid overcalling backing from one or two unusual productions."],
         reliability_notes=[ReliabilityNote("Confidence", "Moderate; repeated consistent evidence is especially important.")],
         examples=["tea → key"],
-        visible_tags=["place contrast"],
         filter_tags=["place contrast", "system map", "education"],
     ),
 ]
@@ -560,10 +502,6 @@ ROMAN_HELP = [
     "Try to keep one symbol sequence for one sound across entries.",
 ]
 
-# ============================================================
-# SESSION STATE
-# ============================================================
-
 if "observations" not in st.session_state:
     st.session_state.observations = []
 if "analysis_requested" not in st.session_state:
@@ -573,33 +511,12 @@ if "edit_observation_id" not in st.session_state:
 if "case_age" not in st.session_state:
     st.session_state.case_age = "3;0"
 
-# ============================================================
-# PHONOLOGY HELPERS
-# ============================================================
-
 IPA_MULTI = ["tʃ", "dʒ", "aɪ", "eɪ", "oʊ", "əʊ", "aʊ", "ɔɪ", "iː", "uː", "ɔː", "ɑː", "ɜː"]
-ROMAN_MULTI = ["tch", "dge", "ch", "sh", "th", "ng", "zh", "ee", "oo", "ah", "aw", "uh", "oy", "eye", "ow"]
 ROMAN_REPLACEMENTS = [
-    ("tch", "tʃ"),
-    ("ch", "tʃ"),
-    ("dge", "dʒ"),
-    ("j", "dʒ"),
-    ("sh", "ʃ"),
-    ("zh", "ʒ"),
-    ("th", "θ"),
-    ("ng", "ŋ"),
-    ("ee", "iː"),
-    ("oo", "uː"),
-    ("ah", "ɑː"),
-    ("aw", "ɔː"),
-    ("uh", "ʌ"),
-    ("oy", "ɔɪ"),
-    ("eye", "aɪ"),
-    ("ow", "aʊ"),
-    ("y", "j"),
-    ("c", "k"),
-    ("q", "k"),
-    ("x", "ks"),
+    ("tch", "tʃ"), ("ch", "tʃ"), ("dge", "dʒ"), ("j", "dʒ"), ("sh", "ʃ"), ("zh", "ʒ"),
+    ("th", "θ"), ("ng", "ŋ"), ("ee", "iː"), ("oo", "uː"), ("ah", "ɑː"), ("aw", "ɔː"),
+    ("uh", "ʌ"), ("oy", "ɔɪ"), ("eye", "aɪ"), ("ow", "aʊ"), ("y", "j"), ("c", "k"),
+    ("q", "k"), ("x", "ks"),
 ]
 
 CLASS_MAP = {
@@ -629,12 +546,8 @@ CLASS_MAP = {
     "tʃ": {"place": "postalveolar", "manner": "affricate", "voice": "voiceless", "class": "consonant"},
     "dʒ": {"place": "postalveolar", "manner": "affricate", "voice": "voiced", "class": "consonant"},
 }
-
 VOWELS = {"a", "e", "i", "o", "u", "ə", "ɪ", "ʊ", "ɛ", "æ", "ɔ", "ɑ", "ɒ", "ʌ", "ɜ", "iː", "uː", "ɔː", "ɑː", "ɜː", "aɪ", "eɪ", "oʊ", "əʊ", "aʊ", "ɔɪ"}
 
-# ============================================================
-# HELPERS
-# ============================================================
 
 def pill(text: str, tone: str = "blue"):
     tones = {
@@ -658,29 +571,6 @@ def render_header():
         """,
         unsafe_allow_html=True,
     )
-
-
-def legend_row():
-    st.markdown("<div class='atlas-legend'>", unsafe_allow_html=True)
-    pill("Clinical Reasoning", "blue")
-    pill("Education", "green")
-    pill("Pattern evidence", "amber")
-    pill("Needs review", "red")
-    st.markdown("<div class='atlas-subtle' style='margin-top:0.5rem;'>Colours now mirror the calmer blue–green style from your screenshot more closely.</div>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
-
-
-def card_start(title: Optional[str] = None, section_bar: bool = False):
-    st.markdown("<div class='atlas-card'>", unsafe_allow_html=True)
-    if title:
-        if section_bar:
-            st.markdown(f"<div class='atlas-section-bar'>{title}</div>", unsafe_allow_html=True)
-        else:
-            st.markdown(f"### {title}")
-
-
-def card_end():
-    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def info_box(text: str, kind: str = "info"):
@@ -717,7 +607,7 @@ def tokenise_phonology(text: str, fmt: str) -> List[str]:
     while i < len(working):
         matched = False
         for chunk in sorted(IPA_MULTI, key=len, reverse=True):
-            if working[i:i+len(chunk)] == chunk:
+            if working[i:i + len(chunk)] == chunk:
                 tokens.append(chunk)
                 i += len(chunk)
                 matched = True
@@ -841,12 +731,6 @@ def confidence_label(score: int) -> str:
     return "tentative evidence"
 
 
-def parsed_representation(text: str, fmt: str) -> str:
-    if not text.strip():
-        return ""
-    return " ".join(tokenise_phonology(text, fmt))
-
-
 def compare_parse(obs: Observation) -> Dict:
     target_tokens = tokenise_phonology(obs.target, obs.target_format)
     real_tokens = tokenise_phonology(obs.realization, obs.realization_format)
@@ -856,27 +740,15 @@ def compare_parse(obs: Observation) -> Dict:
     real_last = final_consonant(real_tokens)
     target_init_cluster = initial_cluster(target_tokens)
     real_init_cluster = initial_cluster(real_tokens)
-
-    notes = []
-    if obs.target_format == "Approximation / Roman":
-        notes.append(f"Target parsed as: {' '.join(target_tokens) if target_tokens else '—'}")
-    if obs.realization_format == "Approximation / Roman":
-        notes.append(f"Realisation parsed as: {' '.join(real_tokens) if real_tokens else '—'}")
-    if not target_tokens or not real_tokens:
-        notes.append("One side could not be parsed clearly.")
-    if obs.target_format == "Approximation / Roman" or obs.realization_format == "Approximation / Roman":
-        notes.append("Roman input uses the app mini-convention, not ordinary spelling.")
-
     flags = []
     if obs.target_format == "Approximation / Roman" and obs.target.lower() == obs.realization.lower():
-        flags.append("Target and realisation are identical in Roman input. Check that the child form was entered separately.")
+        flags.append("Target and realisation are identical in Roman input.")
     if target_first and real_first and target_first == real_first:
-        flags.append("Initial consonant looks preserved by the parser.")
+        flags.append("Initial consonant looks preserved.")
     if target_last and real_last and target_last == real_last:
-        flags.append("Final consonant looks preserved by the parser.")
-    if len(target_init_cluster) >= 2 and len(real_init_cluster) < len(target_init_cluster):
-        flags.append("Initial cluster appears simplified in parsing.")
-
+        flags.append("Final consonant looks preserved.")
+    if len(target_init_cluster) >= 2 and 0 < len(real_init_cluster) < len(target_init_cluster):
+        flags.append("Initial cluster appears simplified.")
     return {
         "target_tokens": target_tokens,
         "real_tokens": real_tokens,
@@ -884,7 +756,6 @@ def compare_parse(obs: Observation) -> Dict:
         "real_first": real_first,
         "target_last": target_last,
         "real_last": real_last,
-        "notes": notes,
         "flags": flags,
     }
 
@@ -895,8 +766,7 @@ def detect_patterns(obs: Observation) -> List[Tuple[str, str]]:
     real_tokens = parse["real_tokens"]
     if not target_tokens or not real_tokens:
         return []
-
-    findings = []
+    findings: List[Tuple[str, str]] = []
     target_first = parse["target_first"]
     real_first = parse["real_first"]
     target_last = parse["target_last"]
@@ -911,6 +781,8 @@ def detect_patterns(obs: Observation) -> List[Tuple[str, str]]:
     real_final_cluster = final_cluster(real_tokens)
 
     if target_first and real_first:
+        if tf.get("place") == rf.get("place") and tf.get("manner") == rf.get("manner") and tf.get("voice") != rf.get("voice"):
+            findings.append(("Initial Voicing", f"Initial target {target_first} differed from realised {real_first} mainly by voicing."))
         if tf.get("place") == "velar" and rf.get("place") in {"alveolar", "dental", "postalveolar"}:
             findings.append(("Velar Fronting", f"Initial target {target_first} was realised as more anterior {real_first}."))
         if tf.get("place") in {"alveolar", "dental"} and rf.get("place") == "velar":
@@ -927,39 +799,66 @@ def detect_patterns(obs: Observation) -> List[Tuple[str, str]]:
     elif target_last and real_last and tlf.get("class") == "consonant" and rlf.get("class") != "consonant":
         findings.append(("Final Consonant Deletion", f"The target ended in consonant {target_last}, but the realisation did not preserve a final consonant."))
 
-    if len(target_init_cluster) >= 2 and len(real_init_cluster) < len(target_init_cluster):
-        findings.append(("Cluster Reduction", f"The initial cluster {''.join(target_init_cluster)} was simplified to {''.join(real_init_cluster) or 'Ø'}."))
-    if len(target_final_cluster) >= 2 and len(real_final_cluster) < len(target_final_cluster):
-        findings.append(("Cluster Reduction", f"The final cluster {''.join(target_final_cluster)} was simplified to {''.join(real_final_cluster) or 'Ø'}."))
+    if len(target_init_cluster) >= 2 and 0 < len(real_init_cluster) < len(target_init_cluster):
+        findings.append(("Cluster Reduction", f"The initial cluster {''.join(target_init_cluster)} was simplified to {''.join(real_init_cluster)}."))
+    if len(target_final_cluster) >= 2 and 0 < len(real_final_cluster) < len(target_final_cluster):
+        findings.append(("Cluster Reduction", f"The final cluster {''.join(target_final_cluster)} was simplified to {''.join(real_final_cluster)}."))
 
     target_syllables = syllable_count_estimate(target_tokens)
     real_syllables = syllable_count_estimate(real_tokens)
     if target_syllables >= 2 and real_syllables < target_syllables:
         findings.append(("Weak Syllable Deletion", f"The realisation appears shorter prosodically ({target_syllables} syllable estimate → {real_syllables})."))
 
-    notes_blob = f"{obs.notes} {obs.significance} {obs.context}".lower()
-    if "intelligib" in notes_blob:
-        findings.append(("Intelligibility impact", "The notes explicitly mention intelligibility consequences."))
-    if "contrast" in notes_blob:
-        findings.append(("Contrast concern", "The notes explicitly mention reduced or lost contrast."))
+    deduped = []
+    seen = set()
+    for item in findings:
+        if item not in seen:
+            deduped.append(item)
+            seen.add(item)
+    return deduped
 
-    return findings
+
+def build_inventory_summary():
+    produced = set()
+    targeted = set()
+    for obs in st.session_state.observations:
+        parse = compare_parse(obs)
+        for tok in parse["target_tokens"]:
+            if token_features(tok).get("class") == "consonant":
+                targeted.add(tok)
+        for tok in parse["real_tokens"]:
+            if token_features(tok).get("class") == "consonant":
+                produced.add(tok)
+    return targeted, produced
+
+
+def process_next_steps(pattern_names: List[str]) -> List[str]:
+    steps = [
+        "Administer DEAP for comprehensive phonological assessment.",
+        "Conduct connected speech sample analysis.",
+        "Review whether additional sampling is needed across positions and lexical items.",
+    ]
+    if any(name in pattern_names for name in ["Stopping", "Velar Fronting", "Initial Voicing", "Deaffrication", "Gliding"]):
+        steps.extend([
+            "Consider phonological contrast therapy, such as minimal pairs or maximal oppositions, where appropriate.",
+            "Check whether the affected contrasts are stable enough to prioritise in intervention planning.",
+        ])
+    if any(name in pattern_names for name in ["Cluster Reduction", "Weak Syllable Deletion", "Final Consonant Deletion"]):
+        steps.append("Probe wider word-shape and syllable-structure patterns before setting targets.")
+    return steps
 
 
 def build_analysis_summary() -> Dict:
     evidence_by_pattern = defaultdict(list)
     category_counter = Counter()
     contexts = []
-    all_findings = []
     child_age = st.session_state.case_age.strip() or "Not set"
 
     for obs in st.session_state.observations:
         category_counter[obs.category] += 1
         if obs.context.strip():
             contexts.append(obs.context.strip())
-        findings = detect_patterns(obs)
-        all_findings.extend(findings)
-        for pattern, explanation in findings:
+        for pattern, explanation in detect_patterns(obs):
             evidence_by_pattern[pattern].append({
                 "observation_id": obs.id,
                 "target": obs.target,
@@ -973,12 +872,40 @@ def build_analysis_summary() -> Dict:
         for pattern, items in evidence_by_pattern.items()
     ]
     ranked_patterns.sort(key=lambda x: x["count"], reverse=True)
+    names = [item["pattern"] for item in ranked_patterns]
+
+    affected_dimensions = []
+    if "Initial Voicing" in names:
+        affected_dimensions.append("Voicing contrasts")
+    if any(name in names for name in ["Stopping", "Deaffrication", "Gliding"]):
+        affected_dimensions.append("Manner contrasts")
+    if any(name in names for name in ["Velar Fronting", "Backing"]):
+        affected_dimensions.append("Place contrasts")
+    if any(name in names for name in ["Cluster Reduction", "Weak Syllable Deletion", "Final Consonant Deletion"]):
+        affected_dimensions.append("Word shape / syllable structure")
+
+    targeted, produced = build_inventory_summary()
+    missing_targets = sorted(targeted - produced)
+    inventory_commentary = []
+    if missing_targets:
+        inventory_commentary.append(f"Targeted but not clearly produced in this sample: {', '.join(missing_targets)}.")
+    inventory_commentary.append(f"Produced consonants in this sample: {', '.join(sorted(produced)) if produced else 'none clearly detected yet' }.")
+
+    reasoning_pathway = [
+        f"Step 1 — Observation: {observation_count()} observation(s) recorded.",
+        f"Step 2 — Detected Processes: {', '.join(names) if names else 'No clear process candidate detected automatically.'}",
+        f"Step 3 — System Dimensions Affected: {', '.join(affected_dimensions) if affected_dimensions else 'Not enough evidence to summarise system dimensions yet.'}",
+        f"Step 4 — Developmental Interpretation: Current age input is {child_age}. Interpretation should be read through that age setting and reviewed if the age changes.",
+    ]
 
     return {
         "child_age": child_age,
         "category_counter": category_counter,
         "contexts": contexts,
         "ranked_patterns": ranked_patterns,
+        "affected_dimensions": affected_dimensions,
+        "inventory_commentary": inventory_commentary,
+        "reasoning_pathway": reasoning_pathway,
         "reasoning": [
             "The summary below stays descriptive first and inferential second.",
             f"Current age input: {child_age}. Developmental interpretation should be read through that age setting and updated if the age changes.",
@@ -992,14 +919,15 @@ def build_analysis_summary() -> Dict:
             "Does the pattern affect intelligibility enough to change priority?",
             "Would broader sampling strengthen or weaken the current interpretation?",
         ],
-        "all_findings_count": len(all_findings),
+        "next_steps": process_next_steps(names),
+        "all_findings_count": sum(item["count"] for item in ranked_patterns),
     }
 
 
 def export_observations_json() -> str:
     payload = {
         "app": "Decision Atlas",
-        "version": "1.1",
+        "version": "1.2",
         "exported_at": datetime.utcnow().isoformat(),
         "observations": [observation_to_dict(obs) for obs in st.session_state.observations],
     }
@@ -1028,12 +956,20 @@ def import_observations_from_json(uploaded_text: str, mode: str = "merge") -> Tu
     return True, f"Imported {len(imported)} observation(s)."
 
 
+def log_requested_process(name: str):
+    if not name.strip():
+        return
+    try:
+        path = Path("requested_processes.log")
+        with path.open("a", encoding="utf-8") as f:
+            f.write(name.strip() + "\n")
+    except Exception:
+        pass
+
+
 def render_process_entry(entry: ProcessEntry):
     st.subheader(entry.name)
     st.write(entry.short_definition)
-    for tag in entry.visible_tags:
-        pill(tag, "blue" if tag not in {"affricates", "liquids"} else "purple")
-
     c1, c2 = st.columns(2)
     with c1:
         st.markdown("**Typical targets**")
@@ -1053,7 +989,6 @@ def render_process_entry(entry: ProcessEntry):
         st.markdown("**Reliability notes**")
         for note in entry.reliability_notes:
             st.write(f"- **{note.label}:** {note.text}")
-
     st.markdown("### Educational Exploration")
     for key, value in entry.educational_exploration.items():
         st.markdown(f"**{key}**")
@@ -1062,22 +997,16 @@ def render_process_entry(entry: ProcessEntry):
                 st.write(f"- {item}")
         else:
             st.write(value)
-
     with st.expander("Cautions and boundaries"):
         for item in entry.cautions:
             st.write(f"- {item}")
 
-# ============================================================
-# UI
-# ============================================================
 
 render_header()
-legend_row()
 
 with st.sidebar:
     st.markdown("## Atlas controls")
     st.write("This build separates clinical reasoning from educational content and keeps the language intentionally cautious.")
-
     st.markdown("### Case metadata")
     with st.form("age_update_form"):
         sidebar_age = st.text_input("Child age", value=st.session_state.case_age, placeholder="e.g. 3;0 or 8;3")
@@ -1087,13 +1016,11 @@ with st.sidebar:
             st.session_state.analysis_requested = False
             st.success("Age updated. The analysis will now use the new age setting.")
             st.rerun()
-
     if st.button("Clear all observations"):
         st.session_state.observations = []
         st.session_state.analysis_requested = False
         st.session_state.edit_observation_id = None
         st.rerun()
-
     st.markdown("---")
     st.markdown("### Export / import")
     st.download_button("Export observations as JSON", data=export_observations_json(), file_name="decision_atlas_observations.json", mime="application/json")
@@ -1106,12 +1033,10 @@ with st.sidebar:
             st.rerun()
         else:
             st.error(message)
-
     st.markdown("---")
     st.markdown("### Roman mini-convention")
     for rule in ROMAN_HELP:
         st.write(f"- {rule}")
-
     st.markdown("---")
     st.markdown("### Reliability commitments")
     for rule in HEDGING_RULES:
@@ -1121,33 +1046,37 @@ clinical_tab, education_tab = st.tabs(["Clinical Reasoning", "Education"])
 
 with clinical_tab:
     st.markdown(f"**Current child age:** {st.session_state.case_age}")
-    left, right = st.columns([1.02, 1.25])
 
-    with left:
-        card_start("Input & Observations", section_bar=True)
+    with st.expander("Input & Observations", expanded=True):
         st.write("Add target–realisation pairs, contextual notes, and significance statements before moving into analysis.")
         info_box("You can enter the target and the realisation in <strong>IPA</strong> or in <strong>Approximation / Roman</strong>. Roman entries use the app’s mini-convention rather than ordinary English spelling.", "info")
-
         editing_obs = get_observation_by_id(st.session_state.edit_observation_id)
         categories = ["Speech pattern", "Contrast impact", "Intelligibility", "Context / task effect", "Developmental consideration", "Other"]
 
         with st.form("observation_form", clear_on_submit=editing_obs is None):
             category = st.selectbox("Observation type", categories, index=categories.index(editing_obs.category) if editing_obs and editing_obs.category in categories else 0)
             st.caption(OBSERVATION_TYPE_HELP.get(category, ""))
-            c1, c2 = st.columns(2)
-            with c1:
+
+            row1a, row1b, row1c = st.columns([1, 1, 0.35])
+            with row1a:
                 target = st.text_input("Target", value=editing_obs.target if editing_obs else "", placeholder="e.g. /kæt/ or kat")
-                target_format = st.selectbox("Target format", ["IPA", "Approximation / Roman"], index=0 if editing_obs and editing_obs.target_format == "IPA" else 1)
-            with c2:
+            with row1b:
                 realization = st.text_input("Realisation", value=editing_obs.realization if editing_obs else "", placeholder="e.g. /tæt/ or tat")
+            with row1c:
+                st.markdown("<div style='height:1.7rem'></div>", unsafe_allow_html=True)
+                save_label = "Update" if editing_obs else "Add"
+                submitted = st.form_submit_button(save_label, use_container_width=True)
+
+            row2a, row2b = st.columns(2)
+            with row2a:
+                target_format = st.selectbox("Target format", ["IPA", "Approximation / Roman"], index=0 if editing_obs and editing_obs.target_format == "IPA" else 1)
+            with row2b:
                 realization_format = st.selectbox("Realisation format", ["IPA", "Approximation / Roman"], index=0 if editing_obs and editing_obs.realization_format == "IPA" else 1)
 
             context = st.text_input("Context / position / task", value=editing_obs.context if editing_obs else "", placeholder="e.g. word-initial, single-word naming, spontaneous speech")
             notes = st.text_area("Observation notes", value=editing_obs.notes if editing_obs else "", placeholder="Describe what was observed, including consistency, contrast effects, or variability.", height=100)
             significance = st.text_area("Why this may matter", value=editing_obs.significance if editing_obs else "", placeholder="e.g. This may reduce the velar–coronal place contrast and affect intelligibility.", height=90)
 
-            save_label = "Update observation" if editing_obs else "Add observation"
-            submitted = st.form_submit_button(save_label)
             if submitted:
                 if target.strip() and realization.strip():
                     add_or_update_observation(Observation(
@@ -1174,7 +1103,6 @@ with clinical_tab:
 
         if not st.session_state.observations:
             info_box("<strong>No observations yet.</strong> Use the form above to add observations.", "info")
-
         if not ready_for_analysis():
             needed = ANALYSIS_THRESHOLD - observation_count()
             info_box(f"<strong>Not enough observations to build a reliable analysis.</strong><br>You currently have {observation_count()} observation(s). Add {needed} more to unlock a fuller reasoning summary.", "warning")
@@ -1203,12 +1131,9 @@ with clinical_tab:
                         if st.button("Delete entry", key=f"delete_{obs.id}"):
                             delete_observation(obs.id)
                             st.rerun()
-        card_end()
 
-    with right:
-        card_start("Analysis & Reasoning", section_bar=True)
+    with st.expander("Analysis & Reasoning", expanded=True):
         st.write("This section uses repeated target–realisation relationships, not only keyword matching.")
-
         st.markdown("### Parse check table")
         if st.session_state.observations:
             comparison_rows = []
@@ -1227,7 +1152,6 @@ with clinical_tab:
                 })
             st.dataframe(comparison_rows, use_container_width=True, hide_index=True)
             info_box("Use this table to check how the app parsed each pair before trusting the analysis below.", "info")
-
             a1, a2 = st.columns(2)
             with a1:
                 if st.button("Check analysis now"):
@@ -1250,88 +1174,104 @@ with clinical_tab:
             if summary["contexts"]:
                 pill(f"Contexts noted: {len(summary['contexts'])}", "purple")
 
-            st.markdown("### Category spread")
-            for category, count in summary["category_counter"].most_common():
-                st.write(f"- **{category}:** {count}")
-
-            st.markdown("### Pattern candidates")
+            st.markdown("### Detected phonological processes")
             if summary["ranked_patterns"]:
                 for item in summary["ranked_patterns"]:
-                    with st.expander(f"{item['pattern']} — {item['confidence']} ({item['count']} evidence item(s))", expanded=item['count'] >= 3):
+                    tone = "red" if item["count"] >= 2 else "amber"
+                    pill(f"{item['pattern']} — {item['count']} instance(s)", tone)
+                    with st.expander(f"View evidence for {item['pattern']}", expanded=item["count"] >= 2):
                         for ev in item["evidence"]:
                             st.write(f"- **{ev['target']} → {ev['realization']}**: {ev['explanation']}")
                             if ev["notes"]:
                                 st.caption(ev["notes"])
             else:
-                info_box("No clear process candidate was detected automatically from the current target–realisation pairs. That may mean the dataset is too small, too mixed, or not well captured by the current rule set.", "warning")
+                info_box("No clear process candidate was detected automatically from the current target–realisation pairs.", "warning")
+
+            st.markdown("### Inventory interpretation")
+            for line in summary["inventory_commentary"]:
+                st.write(f"- {line}")
+
+            st.markdown("### System dimensions affected")
+            if summary["affected_dimensions"]:
+                for dim in summary["affected_dimensions"]:
+                    st.write(f"- {dim}")
+            else:
+                st.write("- Not enough evidence to summarise system dimensions yet.")
+
+            st.markdown("### Reasoning pathway")
+            for line in summary["reasoning_pathway"]:
+                st.write(f"- {line}")
 
             st.markdown("### Reasoning frame")
             for line in summary["reasoning"]:
                 st.write(f"- {line}")
+
+            st.markdown("### Possible next steps")
+            for step in summary["next_steps"]:
+                st.write(f"- {step}")
+
             st.markdown("### Next questions")
             for q in summary["next_questions"]:
                 st.write(f"- {q}")
         else:
             info_box("Ready when you are. Once enough observations are present, choose ‘Check analysis now’ to generate a cautious working summary.", "info")
-        card_end()
 
 with education_tab:
-    edu_left, edu_right = st.columns([1.15, 1])
-    with edu_left:
-        card_start("System Map", section_bar=True)
-        all_filter_tags = sorted({tag for entry in PROCESS_DB for tag in entry.filter_tags})
-        query = st.text_input("Search process", placeholder="Try: velar fronting, FCD, cluster reduction")
-        selected_tags = st.multiselect("Filter by theme", all_filter_tags)
-        filtered = PROCESS_DB
-        if query.strip():
-            q = query.strip().lower()
-            filtered = [entry for entry in filtered if q in entry.name.lower() or any(q in alias.lower() for alias in entry.aliases) or q in entry.short_definition.lower() or any(q in tag.lower() for tag in entry.filter_tags)]
-        if selected_tags:
-            filtered = [entry for entry in filtered if all(tag in entry.filter_tags for tag in selected_tags)]
-        st.write(f"Showing {len(filtered)} pattern(s).")
-        if filtered:
-            for entry in filtered:
-                with st.container(border=True):
+    left, right = st.columns([1.15, 1])
+    with left:
+        with st.expander("System Map", expanded=True):
+            all_filter_tags = sorted({tag for entry in PROCESS_DB for tag in entry.filter_tags})
+            process_names = [entry.name for entry in PROCESS_DB]
+            selected_process = st.selectbox("Choose process", ["All processes"] + process_names + ["Different process"])
+            selected_tags = st.multiselect("Filter by theme", all_filter_tags)
+            if selected_process == "Different process":
+                custom_process = st.text_input("Different process", placeholder="Type a process name that should exist here")
+                if custom_process.strip():
+                    log_requested_process(custom_process)
+                    st.caption("Saved to requested_processes.log")
+            filtered = PROCESS_DB
+            if selected_process not in ["All processes", "Different process"]:
+                filtered = [entry for entry in PROCESS_DB if entry.name == selected_process]
+            if selected_tags:
+                filtered = [entry for entry in filtered if all(tag in entry.filter_tags for tag in selected_tags)]
+            st.write(f"Showing {len(filtered)} pattern(s).")
+            if filtered:
+                for entry in filtered:
                     render_process_entry(entry)
-        else:
-            info_box("No matching process found. Try a broader search term.", "warning")
-        card_end()
-
-    with edu_right:
-        card_start("Educational Exploration", section_bar=True)
-        st.write("Use this section to practise thinking carefully without turning heuristics into rigid rules.")
-        st.markdown("### Roman input guide")
-        for rule in ROMAN_HELP:
-            st.write(f"- {rule}")
-
-        st.markdown("### Reflection prompts")
-        prompts = [
-            "What is the observed pattern, purely descriptively?",
-            "Which phonemic contrast may be reduced or neutralised?",
-            "Is the issue segment-specific, class-wide, structural, or context-bound?",
-            "What evidence would still be needed before making a developmental or clinical judgement?",
-            "How might dialect, multilingual exposure, lexical familiarity, and task demands change interpretation?",
-        ]
-        for p in prompts:
-            st.write(f"- {p}")
-
-        st.markdown("### Overclaim detector")
-        user_text = st.text_area("Paste an explanation to check whether it sounds too absolute", placeholder="Example: Velar fronting always means the child cannot produce velars.", height=130)
-        if user_text.strip():
-            findings = reliability_scan(user_text)
-            if findings:
-                info_box("This wording may be too strong or too absolute.", "danger")
-                for item in findings:
-                    st.write(f"- {item}")
-                st.markdown("**Safer direction**")
-                st.write("Try rewriting the statement so it separates observation from interpretation and uses context-sensitive wording such as ‘may’, ‘can’, or ‘often’.")
             else:
-                info_box("No obvious red-flag overclaims detected in the wording you pasted.", "success")
-                st.write("That does not guarantee correctness, but the phrasing does not immediately look overly absolute.")
+                info_box("No matching process found. Try a different filter or log a missing process.", "warning")
 
-        st.markdown("### Example contrast")
-        st.markdown("**Overstated**")
-        st.write("Velar fronting means the child cannot produce velars and is abnormal after a certain age.")
-        st.markdown("**More reliable educational wording**")
-        st.write("Velar fronting describes a pattern in which target velars may be realised as more anterior outputs. Its significance depends on age, consistency, intelligibility impact, linguistic background, and the child’s wider phonological system.")
-        card_end()
+    with right:
+        with st.expander("Educational Exploration", expanded=True):
+            st.write("Use this section to practise thinking carefully without turning heuristics into rigid rules.")
+            st.markdown("### Roman input guide")
+            for rule in ROMAN_HELP:
+                st.write(f"- {rule}")
+            st.markdown("### Reflection prompts")
+            prompts = [
+                "What is the observed pattern, purely descriptively?",
+                "Which phonemic contrast may be reduced or neutralised?",
+                "Is the issue segment-specific, class-wide, structural, or context-bound?",
+                "What evidence would still be needed before making a developmental or clinical judgement?",
+                "How might dialect, multilingual exposure, lexical familiarity, and task demands change interpretation?",
+            ]
+            for p in prompts:
+                st.write(f"- {p}")
+            st.markdown("### Overclaim detector")
+            user_text = st.text_area("Paste an explanation to check whether it sounds too absolute", placeholder="Example: Velar fronting always means the child cannot produce velars.", height=130)
+            if user_text.strip():
+                findings = reliability_scan(user_text)
+                if findings:
+                    info_box("This wording may be too strong or too absolute.", "danger")
+                    for item in findings:
+                        st.write(f"- {item}")
+                    st.markdown("**Safer direction**")
+                    st.write("Try rewriting the statement so it separates observation from interpretation and uses context-sensitive wording such as ‘may’, ‘can’, or ‘often’.")
+                else:
+                    info_box("No obvious red-flag overclaims detected in the wording you pasted.", "success")
+                    st.write("That does not guarantee correctness, but the phrasing does not immediately look overly absolute.")
+            st.markdown("### Example contrast")
+            st.markdown("**Overstated**")
+            st.write("Velar fronting means the child cannot produce velars and is abnormal after a certain age.")
+            st.markdown("**More reliable educational wording**")
+            st.write("Velar fronting describes a pattern in which target velars may be realised as more anterior outputs. Its significance depends on age, consistency, intelligibility impact, linguistic background, and the child’s wider phonological system.")
