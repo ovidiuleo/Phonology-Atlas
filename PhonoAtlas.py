@@ -283,6 +283,16 @@ class Observation:
     created_at: str
 
 
+OBSERVATION_TYPE_HELP = {
+    "Speech pattern": "Use this when you are recording a recurring phonological pattern or a likely process shown by one or more productions.",
+    "Contrast impact": "Use this when the key issue is loss or reduction of a phonemic contrast, even if you are not yet naming a process.",
+    "Intelligibility": "Use this when the observation is mainly about how understandable the child is to listeners.",
+    "Context / task effect": "Use this when performance changes across word position, task type, prompting, repetition, or speech context.",
+    "Developmental consideration": "Use this when you want to note age-related interpretation, persistence, or whether a pattern may need cautious developmental judgement.",
+    "Other": "Use this for observations that matter clinically but do not fit neatly into the other categories."
+}
+
+
 PROCESS_DB: List[ProcessEntry] = [
     ProcessEntry(
         name="Velar Fronting",
@@ -560,6 +570,8 @@ if "analysis_requested" not in st.session_state:
     st.session_state.analysis_requested = False
 if "edit_observation_id" not in st.session_state:
     st.session_state.edit_observation_id = None
+if "case_age" not in st.session_state:
+    st.session_state.case_age = "3;0"
 
 # ============================================================
 # PHONOLOGY HELPERS
@@ -817,6 +829,10 @@ def ready_for_analysis() -> bool:
     return observation_count() >= ANALYSIS_THRESHOLD
 
 
+def update_case_age(new_age: str):
+    st.session_state.case_age = new_age.strip()
+
+
 def confidence_label(score: int) -> str:
     if score >= 5:
         return "strong repeated evidence"
@@ -935,6 +951,7 @@ def build_analysis_summary() -> Dict:
     category_counter = Counter()
     contexts = []
     all_findings = []
+    child_age = st.session_state.case_age.strip() or "Not set"
 
     for obs in st.session_state.observations:
         category_counter[obs.category] += 1
@@ -958,11 +975,13 @@ def build_analysis_summary() -> Dict:
     ranked_patterns.sort(key=lambda x: x["count"], reverse=True)
 
     return {
+        "child_age": child_age,
         "category_counter": category_counter,
         "contexts": contexts,
         "ranked_patterns": ranked_patterns,
         "reasoning": [
             "The summary below stays descriptive first and inferential second.",
+            f"Current age input: {child_age}. Developmental interpretation should be read through that age setting and updated if the age changes.",
             "Repeated target–realisation relationships are weighted more heavily than isolated striking examples.",
             "Approximation / Roman inputs are accepted through an explicit mini-convention, not through ordinary English spelling.",
             "This remains a working analysis and should be checked against broader sampling, position effects, and intelligibility impact.",
@@ -1058,6 +1077,17 @@ legend_row()
 with st.sidebar:
     st.markdown("## Atlas controls")
     st.write("This build separates clinical reasoning from educational content and keeps the language intentionally cautious.")
+
+    st.markdown("### Case metadata")
+    with st.form("age_update_form"):
+        sidebar_age = st.text_input("Child age", value=st.session_state.case_age, placeholder="e.g. 3;0 or 8;3")
+        age_updated = st.form_submit_button("Update age")
+        if age_updated:
+            update_case_age(sidebar_age)
+            st.session_state.analysis_requested = False
+            st.success("Age updated. The analysis will now use the new age setting.")
+            st.rerun()
+
     if st.button("Clear all observations"):
         st.session_state.observations = []
         st.session_state.analysis_requested = False
@@ -1090,6 +1120,7 @@ with st.sidebar:
 clinical_tab, education_tab = st.tabs(["Clinical Reasoning", "Education"])
 
 with clinical_tab:
+    st.markdown(f"**Current child age:** {st.session_state.case_age}")
     left, right = st.columns([1.02, 1.25])
 
     with left:
@@ -1102,6 +1133,7 @@ with clinical_tab:
 
         with st.form("observation_form", clear_on_submit=editing_obs is None):
             category = st.selectbox("Observation type", categories, index=categories.index(editing_obs.category) if editing_obs and editing_obs.category in categories else 0)
+            st.caption(OBSERVATION_TYPE_HELP.get(category, ""))
             c1, c2 = st.columns(2)
             with c1:
                 target = st.text_input("Target", value=editing_obs.target if editing_obs else "", placeholder="e.g. /kæt/ or kat")
@@ -1176,13 +1208,6 @@ with clinical_tab:
     with right:
         card_start("Analysis & Reasoning", section_bar=True)
         st.write("This section uses repeated target–realisation relationships, not only keyword matching.")
-        a1, a2 = st.columns(2)
-        with a1:
-            if st.button("Check analysis now"):
-                st.session_state.analysis_requested = True
-        with a2:
-            if st.button("Continue adding observations"):
-                st.session_state.analysis_requested = False
 
         st.markdown("### Parse check table")
         if st.session_state.observations:
@@ -1191,10 +1216,10 @@ with clinical_tab:
                 parse = compare_parse(obs)
                 comparison_rows.append({
                     "Target": obs.target,
-                    "Target fmt": obs.target_format,
+                    "Target fmt": obs.target_format.replace("Approximation / Roman", "Approx/Roman"),
                     "Parsed target": " ".join(parse["target_tokens"]) if parse["target_tokens"] else "—",
                     "Realisation": obs.realization,
-                    "Realisation fmt": obs.realization_format,
+                    "Realisation fmt": obs.realization_format.replace("Approximation / Roman", "Approx/Roman"),
                     "Parsed realisation": " ".join(parse["real_tokens"]) if parse["real_tokens"] else "—",
                     "Initial C": f"{parse['target_first'] or '—'} → {parse['real_first'] or '—'}",
                     "Final C": f"{parse['target_last'] or '—'} → {parse['real_last'] or '—'}",
@@ -1202,6 +1227,14 @@ with clinical_tab:
                 })
             st.dataframe(comparison_rows, use_container_width=True, hide_index=True)
             info_box("Use this table to check how the app parsed each pair before trusting the analysis below.", "info")
+
+            a1, a2 = st.columns(2)
+            with a1:
+                if st.button("Check analysis now"):
+                    st.session_state.analysis_requested = True
+            with a2:
+                if st.button("Continue adding observations"):
+                    st.session_state.analysis_requested = False
         else:
             info_box("Add observations to populate the parse check table.", "info")
 
@@ -1211,6 +1244,7 @@ with clinical_tab:
             summary = build_analysis_summary()
             info_box("This is a cautious working analysis. It is designed to support reasoning, not replace full assessment or judgement.", "info")
             st.markdown("### Overview")
+            pill(f"Age: {summary['child_age']}", "purple")
             pill(f"Observations: {observation_count()}", "blue")
             pill(f"Detected evidence items: {summary['all_findings_count']}", "green")
             if summary["contexts"]:
